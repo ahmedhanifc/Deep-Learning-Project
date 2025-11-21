@@ -1,47 +1,169 @@
-def plot_training_curves(history, figsize=(15, 5)):
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+
+
+def plot_loss_curves(history, figsize=(10, 6)):
     """
-    Plot training and validation loss and accuracy curves.
+    Plot training and testing loss curves vs epochs.
     
     Args:
-        history: Dictionary returned from train_model() containing:
-            - 'train_losses', 'test_losses', 'train_accuracies', 'test_accuracies'
+        history: Dictionary containing training history with 'train_losses' key.
+                 If 'test_losses' is present, will plot test loss as a curve.
         figsize: Figure size tuple (width, height)
     """
-    fig, axes = plt.subplots(1, 2, figsize=figsize)
+    plt.figure(figsize=figsize)
+    
     epochs = range(1, len(history['train_losses']) + 1)
     
-    # Plot 1: Loss curves
-    axes[0].plot(epochs, history['train_losses'], 'b-', label='Train Loss', linewidth=2)
-    axes[0].plot(epochs, history['test_losses'], 'r-', label='Test Loss', linewidth=2)
-    axes[0].set_xlabel('Epoch', fontsize=12)
-    axes[0].set_ylabel('Loss', fontsize=12)
-    axes[0].set_title('Training and Test Loss vs Epoch', fontsize=14, fontweight='bold')
-    axes[0].legend(fontsize=11)
-    axes[0].grid(True, alpha=0.3)
+    # Plot training loss
+    plt.plot(epochs, history['train_losses'], 'b-', label='Training Loss', linewidth=2, marker='o')
     
-    # Plot 2: Accuracy curves
-    axes[1].plot(epochs, history['train_accuracies'], 'b-', label='Train Accuracy', linewidth=2)
-    axes[1].plot(epochs, history['test_accuracies'], 'r-', label='Test Accuracy', linewidth=2)
-    axes[1].set_xlabel('Epoch', fontsize=12)
-    axes[1].set_ylabel('Accuracy (%)', fontsize=12)
-    axes[1].set_title('Training and Test Accuracy vs Epoch', fontsize=14, fontweight='bold')
-    axes[1].legend(fontsize=11)
-    axes[1].grid(True, alpha=0.3)
+    # Plot test loss
+    if 'test_losses' in history:
+        plt.plot(epochs, history['test_losses'], 'r-', label='Test Loss', linewidth=2, marker='s')
+    
+    plt.xlabel('Epoch', fontsize=12)
+    plt.ylabel('Loss', fontsize=12)
+    plt.title('Training and Test Loss vs Epoch', fontsize=14, fontweight='bold')
+    plt.ylim(bottom=0)  
+    plt.legend(fontsize=10)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_accuracy_curves(history, test_metrics=None, figsize=(10, 6)):
+    """
+    Plot training and testing accuracy curves vs epochs.
+    
+    Args:
+        history: Dictionary containing training history with 'train_accuracies' key.
+                 If 'test_accuracies' is present, will plot test accuracy as a curve.
+        test_metrics: Optional dictionary containing test metrics with 'accuracy' key (deprecated, use history)
+        figsize: Figure size tuple (width, height)
+    """
+    plt.figure(figsize=figsize)
+    
+    epochs = range(1, len(history['train_accuracies']) + 1)
+    
+    plt.plot(epochs, history['train_accuracies'], 'b-', label='Training Accuracy', 
+             linewidth=2, marker='o')
+    
+    # Plot test accuracy from history if available
+    if 'test_accuracies' in history:
+        plt.plot(epochs, history['test_accuracies'], 'r-', label='Test Accuracy', linewidth=2, marker='s')
+    # Fallback to test_metrics for backward compatibility
+    elif test_metrics is not None and 'accuracy' in test_metrics:
+        plt.axhline(y=test_metrics['accuracy'], color='r', linestyle='--', 
+                   label=f'Test Accuracy: {test_metrics["accuracy"]:.4f}', linewidth=2)
+    
+    plt.xlabel('Epoch', fontsize=12)
+    plt.ylabel('Accuracy', fontsize=12)
+    plt.title('Training and Test Accuracy vs Epoch', fontsize=14, fontweight='bold')
+    plt.legend(fontsize=10)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_combined_metrics(history, test_metrics=None, figsize=(12, 8)):
+    """
+    Plot multiple metrics (loss, accuracy, F1) in subplots.
+    
+    Args:
+        history: Dictionary containing training history. If test metrics are present
+                 (e.g., 'test_losses', 'test_accuracies'), they will be plotted as curves.
+        test_metrics: Optional dictionary containing test metrics (deprecated, use history)
+        figsize: Figure size tuple (width, height)
+    """
+    fig, axes = plt.subplots(2, 2, figsize=figsize)
+    epochs = range(1, len(history['train_losses']) + 1)
+    
+    # Plot 1: Loss
+    axes[0, 0].plot(epochs, history['train_losses'], 'b-', label='Training Loss', 
+                    linewidth=2, marker='o')
+    if 'test_losses' in history:
+        axes[0, 0].plot(epochs, history['test_losses'], 'r-', label='Test Loss', 
+                       linewidth=2, marker='s')
+    elif test_metrics is not None and 'loss' in test_metrics:
+        axes[0, 0].axhline(y=test_metrics['loss'], color='r', linestyle='--', 
+                          label=f'Test Loss: {test_metrics["loss"]:.4f}', linewidth=2)
+    axes[0, 0].set_xlabel('Epoch')
+    axes[0, 0].set_ylabel('Loss')
+    axes[0, 0].set_title('Loss vs Epoch')
+    axes[0, 0].set_ylim(bottom=0)  
+    axes[0, 0].legend()
+    axes[0, 0].grid(True, alpha=0.3)
+    
+    # Plot 2: Accuracy
+    axes[0, 1].plot(epochs, history['train_accuracies'], 'b-', label='Training Accuracy', 
+                   linewidth=2, marker='o')
+    if 'test_accuracies' in history:
+        axes[0, 1].plot(epochs, history['test_accuracies'], 'r-', label='Test Accuracy', 
+                       linewidth=2, marker='s')
+    elif test_metrics is not None and 'accuracy' in test_metrics:
+        axes[0, 1].axhline(y=test_metrics['accuracy'], color='r', linestyle='--', 
+                          label=f'Test Accuracy: {test_metrics["accuracy"]:.4f}', linewidth=2)
+    axes[0, 1].set_xlabel('Epoch')
+    axes[0, 1].set_ylabel('Accuracy')
+    axes[0, 1].set_title('Accuracy vs Epoch')
+    axes[0, 1].legend()
+    axes[0, 1].grid(True, alpha=0.3)
+    
+    # Plot 3: F1 Score 
+    if 'train_f1_macro' in history:
+        axes[1, 0].plot(epochs, history['train_f1_macro'], 'b-', label='Training F1', 
+                       linewidth=2, marker='o')
+        if 'test_f1_macro' in history:
+            axes[1, 0].plot(epochs, history['test_f1_macro'], 'r-', label='Test F1', 
+                           linewidth=2, marker='s')
+        elif test_metrics is not None and 'f1_macro' in test_metrics:
+            axes[1, 0].axhline(y=test_metrics['f1_macro'], color='r', linestyle='--', 
+                              label=f'Test F1: {test_metrics["f1_macro"]:.4f}', linewidth=2)
+        axes[1, 0].set_xlabel('Epoch')
+        axes[1, 0].set_ylabel('F1 Score')
+        axes[1, 0].set_title('F1 Score vs Epoch')
+        axes[1, 0].legend()
+        axes[1, 0].grid(True, alpha=0.3)
+    
+    # Plot 4: Precision 
+    if 'train_precision_macro' in history:
+        axes[1, 1].plot(epochs, history['train_precision_macro'], 'b-', 
+                       label='Training Precision', linewidth=2, marker='o')
+        if 'test_precision_macro' in history:
+            axes[1, 1].plot(epochs, history['test_precision_macro'], 'r-', 
+                           label='Test Precision', linewidth=2, marker='s')
+        elif test_metrics is not None and 'precision_macro' in test_metrics:
+            axes[1, 1].axhline(y=test_metrics['precision_macro'], color='r', linestyle='--', 
+                              label=f'Test Precision: {test_metrics["precision_macro"]:.4f}', 
+                              linewidth=2)
+        axes[1, 1].set_xlabel('Epoch')
+        axes[1, 1].set_ylabel('Precision')
+        axes[1, 1].set_title('Precision vs Epoch')
+        axes[1, 1].legend()
+        axes[1, 1].grid(True, alpha=0.3)
     
     plt.tight_layout()
     plt.show()
 
 
-def plot_confusion_matrix(cm, class_names, figsize=(10, 8), normalize=False):
+def plot_confusion_matrix(y_true, y_pred, class_names=None, figsize=(8, 6), 
+                         normalize=False, cmap='Blues'):
     """
-    Plot a confusion matrix with optional normalization.
+    Plot confusion matrix as a heatmap.
     
     Args:
-        cm: Confusion matrix (numpy array)
-        class_names: List of class names
-        figsize: Figure size tuple
-        normalize: If True, normalize the confusion matrix (show percentages)
+        y_true: True labels (array-like)
+        y_pred: Predicted labels (array-like)
+        class_names: Optional list of class names
+        figsize: Figure size tuple (width, height)
+        normalize: If True, normalize the confusion matrix
+        cmap: Colormap for the heatmap
     """
+    cm = confusion_matrix(y_true, y_pred)
+    
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
         fmt = '.2f'
@@ -50,128 +172,144 @@ def plot_confusion_matrix(cm, class_names, figsize=(10, 8), normalize=False):
         fmt = 'd'
         title = 'Confusion Matrix'
     
-    fig, ax = plt.subplots(figsize=figsize)
-    im = ax.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-    ax.figure.colorbar(im, ax=ax)
+    plt.figure(figsize=figsize)
     
-    # Set labels
-    ax.set(xticks=np.arange(cm.shape[1]),
-           yticks=np.arange(cm.shape[0]),
-           xticklabels=class_names,
-           yticklabels=class_names,
-           title=title,
-           ylabel='True Label',
-           xlabel='Predicted Label')
+    if class_names is None:
+        unique_classes = np.unique(np.concatenate([y_true, y_pred]))
+        class_names = [f'Class {i}' for i in unique_classes]
     
-    # Rotate labels
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+    sns.heatmap(cm, annot=True, fmt=fmt, cmap=cmap, xticklabels=class_names, 
+                yticklabels=class_names, cbar_kws={'label': 'Count'})
     
-    # Add text annotations
-    thresh = cm.max() / 2.
-    for i in range(cm.shape[0]):
-        for j in range(cm.shape[1]):
-            ax.text(j, i, format(cm[i, j], fmt),
-                   ha="center", va="center",
-                   color="white" if cm[i, j] > thresh else "black",
-                   fontsize=12, fontweight='bold')
-    
+    plt.ylabel('True Label', fontsize=12)
+    plt.xlabel('Predicted Label', fontsize=12)
+    plt.title(title, fontsize=14, fontweight='bold')
     plt.tight_layout()
     plt.show()
+    
+    return cm
 
 
-def plot_class_metrics(metrics, class_names, figsize=(15, 5)):
+def plot_training_history(history, test_metrics=None, figsize=(15, 10)):
     """
-    Plot per-class precision, recall, and F1-score.
+    Create a comprehensive plot of all training metrics.
     
     Args:
-        metrics: Dictionary returned from compute_classification_metrics()
-        class_names: List of class names
-        figsize: Figure size tuple
+        history: Dictionary containing training history. If test metrics are present
+                 (e.g., 'test_losses', 'test_accuracies'), they will be plotted as curves.
+        test_metrics: Optional dictionary containing test metrics (deprecated, use history)
+        figsize: Figure size tuple (width, height)
     """
-    fig, axes = plt.subplots(1, 3, figsize=figsize)
+    num_metrics = sum([
+        'train_losses' in history,
+        'train_accuracies' in history,
+        'train_f1_macro' in history,
+        'train_precision_macro' in history,
+        'train_recall_macro' in history
+    ])
     
-    x = np.arange(len(class_names))
-    width = 0.35
+    if num_metrics == 0:
+        print("No training history data found!")
+        return
+    
+    rows = (num_metrics + 1) // 2
+    cols = 2
+    fig, axes = plt.subplots(rows, cols, figsize=figsize)
+    axes = axes.flatten() if num_metrics > 1 else [axes]
+    
+    epochs = range(1, len(history['train_losses']) + 1)
+    plot_idx = 0
+    
+    # Loss
+    if 'train_losses' in history:
+        axes[plot_idx].plot(epochs, history['train_losses'], 'b-', 
+                           label='Training Loss', linewidth=2, marker='o')
+        if 'test_losses' in history:
+            axes[plot_idx].plot(epochs, history['test_losses'], 'r-', 
+                               label='Test Loss', linewidth=2, marker='s')
+        elif test_metrics and 'loss' in test_metrics:
+            axes[plot_idx].axhline(y=test_metrics['loss'], color='r', linestyle='--', 
+                                  label=f'Test Loss', linewidth=2)
+        axes[plot_idx].set_xlabel('Epoch')
+        axes[plot_idx].set_ylabel('Loss')
+        axes[plot_idx].set_title('Loss vs Epoch')
+        axes[plot_idx].set_ylim(bottom=0)  
+        axes[plot_idx].legend()
+        axes[plot_idx].grid(True, alpha=0.3)
+        plot_idx += 1
+    
+    # Accuracy
+    if 'train_accuracies' in history:
+        axes[plot_idx].plot(epochs, history['train_accuracies'], 'b-', 
+                           label='Training Accuracy', linewidth=2, marker='o')
+        if 'test_accuracies' in history:
+            axes[plot_idx].plot(epochs, history['test_accuracies'], 'r-', 
+                               label='Test Accuracy', linewidth=2, marker='s')
+        elif test_metrics and 'accuracy' in test_metrics:
+            axes[plot_idx].axhline(y=test_metrics['accuracy'], color='r', linestyle='--', 
+                                  label=f'Test Accuracy', linewidth=2)
+        axes[plot_idx].set_xlabel('Epoch')
+        axes[plot_idx].set_ylabel('Accuracy')
+        axes[plot_idx].set_title('Accuracy vs Epoch')
+        axes[plot_idx].legend()
+        axes[plot_idx].grid(True, alpha=0.3)
+        plot_idx += 1
+    
+    # F1 Score
+    if 'train_f1_macro' in history:
+        axes[plot_idx].plot(epochs, history['train_f1_macro'], 'b-', 
+                           label='Training F1', linewidth=2, marker='o')
+        if 'test_f1_macro' in history:
+            axes[plot_idx].plot(epochs, history['test_f1_macro'], 'r-', 
+                               label='Test F1', linewidth=2, marker='s')
+        elif test_metrics and 'f1_macro' in test_metrics:
+            axes[plot_idx].axhline(y=test_metrics['f1_macro'], color='r', linestyle='--', 
+                                 label=f'Test F1', linewidth=2)
+        axes[plot_idx].set_xlabel('Epoch')
+        axes[plot_idx].set_ylabel('F1 Score')
+        axes[plot_idx].set_title('F1 Score vs Epoch')
+        axes[plot_idx].legend()
+        axes[plot_idx].grid(True, alpha=0.3)
+        plot_idx += 1
     
     # Precision
-    axes[0].bar(x, metrics['precision_per_class'], width, label='Precision', color='skyblue', edgecolor='black')
-    axes[0].axhline(y=metrics['precision_macro'], color='r', linestyle='--', 
-                    label=f'Macro Avg: {metrics["precision_macro"]:.3f}')
-    axes[0].set_xlabel('Class', fontsize=12)
-    axes[0].set_ylabel('Precision', fontsize=12)
-    axes[0].set_title('Precision per Class', fontsize=14, fontweight='bold')
-    axes[0].set_xticks(x)
-    axes[0].set_xticklabels(class_names, rotation=45, ha='right')
-    axes[0].legend()
-    axes[0].grid(True, alpha=0.3, axis='y')
-    axes[0].set_ylim([0, 1.1])
+    if 'train_precision_macro' in history:
+        axes[plot_idx].plot(epochs, history['train_precision_macro'], 'b-', 
+                          label='Training Precision', linewidth=2, marker='o')
+        if 'test_precision_macro' in history:
+            axes[plot_idx].plot(epochs, history['test_precision_macro'], 'r-', 
+                               label='Test Precision', linewidth=2, marker='s')
+        elif test_metrics and 'precision_macro' in test_metrics:
+            axes[plot_idx].axhline(y=test_metrics['precision_macro'], color='r', linestyle='--', 
+                                  label=f'Test Precision', linewidth=2)
+        axes[plot_idx].set_xlabel('Epoch')
+        axes[plot_idx].set_ylabel('Precision')
+        axes[plot_idx].set_title('Precision vs Epoch')
+        axes[plot_idx].legend()
+        axes[plot_idx].grid(True, alpha=0.3)
+        plot_idx += 1
     
     # Recall
-    axes[1].bar(x, metrics['recall_per_class'], width, label='Recall', color='lightgreen', edgecolor='black')
-    axes[1].axhline(y=metrics['recall_macro'], color='r', linestyle='--', 
-                    label=f'Macro Avg: {metrics["recall_macro"]:.3f}')
-    axes[1].set_xlabel('Class', fontsize=12)
-    axes[1].set_ylabel('Recall', fontsize=12)
-    axes[1].set_title('Recall per Class', fontsize=14, fontweight='bold')
-    axes[1].set_xticks(x)
-    axes[1].set_xticklabels(class_names, rotation=45, ha='right')
-    axes[1].legend()
-    axes[1].grid(True, alpha=0.3, axis='y')
-    axes[1].set_ylim([0, 1.1])
+    if 'train_recall_macro' in history:
+        axes[plot_idx].plot(epochs, history['train_recall_macro'], 'b-', 
+                          label='Training Recall', linewidth=2, marker='o')
+        if 'test_recall_macro' in history:
+            axes[plot_idx].plot(epochs, history['test_recall_macro'], 'r-', 
+                               label='Test Recall', linewidth=2, marker='s')
+        elif test_metrics and 'recall_macro' in test_metrics:
+            axes[plot_idx].axhline(y=test_metrics['recall_macro'], color='r', linestyle='--', 
+                                  label=f'Test Recall', linewidth=2)
+        axes[plot_idx].set_xlabel('Epoch')
+        axes[plot_idx].set_ylabel('Recall')
+        axes[plot_idx].set_title('Recall vs Epoch')
+        axes[plot_idx].legend()
+        axes[plot_idx].grid(True, alpha=0.3)
+        plot_idx += 1
     
-    # F1-Score
-    axes[2].bar(x, metrics['f1_per_class'], width, label='F1-Score', color='salmon', edgecolor='black')
-    axes[2].axhline(y=metrics['f1_macro'], color='r', linestyle='--', 
-                    label=f'Macro Avg: {metrics["f1_macro"]:.3f}')
-    axes[2].set_xlabel('Class', fontsize=12)
-    axes[2].set_ylabel('F1-Score', fontsize=12)
-    axes[2].set_title('F1-Score per Class', fontsize=14, fontweight='bold')
-    axes[2].set_xticks(x)
-    axes[2].set_xticklabels(class_names, rotation=45, ha='right')
-    axes[2].legend()
-    axes[2].grid(True, alpha=0.3, axis='y')
-    axes[2].set_ylim([0, 1.1])
+    # Hide unused subplots
+    for idx in range(plot_idx, len(axes)):
+        axes[idx].axis('off')
     
     plt.tight_layout()
     plt.show()
 
-
-def print_metrics_summary(metrics, class_names):
-    """
-    Print a comprehensive summary of all classification metrics.
-    
-    Args:
-        metrics: Dictionary returned from compute_classification_metrics()
-        class_names: List of class names
-    """
-    print("=" * 80)
-    print("CLASSIFICATION METRICS SUMMARY".center(80))
-    print("=" * 80)
-    
-    print(f"\nOverall Accuracy: {metrics['accuracy']:.4f} ({metrics['accuracy']*100:.2f}%)")
-    
-    print("\n" + "-" * 80)
-    print("PER-CLASS METRICS:")
-    print("-" * 80)
-    print(f"{'Class':<15} {'Precision':<12} {'Recall':<12} {'F1-Score':<12}")
-    print("-" * 80)
-    for i, class_name in enumerate(class_names):
-        print(f"{class_name:<15} {metrics['precision_per_class'][i]:<12.4f} "
-              f"{metrics['recall_per_class'][i]:<12.4f} {metrics['f1_per_class'][i]:<12.4f}")
-    
-    print("\n" + "-" * 80)
-    print("AVERAGE METRICS:")
-    print("-" * 80)
-    print(f"Macro Average:")
-    print(f"  Precision: {metrics['precision_macro']:.4f}")
-    print(f"  Recall:    {metrics['recall_macro']:.4f}")
-    print(f"  F1-Score:  {metrics['f1_macro']:.4f}")
-    print(f"\nWeighted Average:")
-    print(f"  Precision: {metrics['precision_weighted']:.4f}")
-    print(f"  Recall:    {metrics['recall_weighted']:.4f}")
-    print(f"  F1-Score:  {metrics['f1_weighted']:.4f}")
-    
-    print("\n" + "=" * 80)
-    print("DETAILED CLASSIFICATION REPORT:")
-    print("=" * 80)
-    print(metrics['classification_report'])
