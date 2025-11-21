@@ -2,39 +2,47 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
+import os
 
-
-def plot_loss_curves(history, figsize=(10, 6)):
+def plot_loss_curves(history, figsize=(10, 6), save_path=None, show=True):
     """
     Plot training and testing loss curves vs epochs.
     
     Args:
-        history: Dictionary containing training history with 'train_losses' key.
-                 If 'test_losses' is present, will plot test loss as a curve.
-        figsize: Figure size tuple (width, height)
+        history: Dictionary containing training history
+        figsize: Figure size tuple
+        save_path: If provided, save plot to this path (e.g., 'plots/run_1_loss.png')
+        show: Whether to display the plot
     """
     plt.figure(figsize=figsize)
     
     epochs = range(1, len(history['train_losses']) + 1)
     
-    # Plot training loss
     plt.plot(epochs, history['train_losses'], 'b-', label='Training Loss', linewidth=2, marker='o')
     
-    # Plot test loss
     if 'test_losses' in history:
         plt.plot(epochs, history['test_losses'], 'r-', label='Test Loss', linewidth=2, marker='s')
     
     plt.xlabel('Epoch', fontsize=12)
     plt.ylabel('Loss', fontsize=12)
     plt.title('Training and Test Loss vs Epoch', fontsize=14, fontweight='bold')
-    plt.ylim(bottom=0)  
+    plt.ylim(bottom=0)
     plt.legend(fontsize=10)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.show()
+    
+    if save_path:
+        os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else '.', exist_ok=True)
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Plot saved to {save_path}")
+    
+    if show:
+        plt.show()
+    else:
+        plt.close()
 
 
-def plot_accuracy_curves(history, test_metrics=None, figsize=(10, 6)):
+def plot_accuracy_curves(history, figsize=(10, 6),  save_path=None, show=True):
     """
     Plot training and testing accuracy curves vs epochs.
     
@@ -54,10 +62,6 @@ def plot_accuracy_curves(history, test_metrics=None, figsize=(10, 6)):
     # Plot test accuracy from history if available
     if 'test_accuracies' in history:
         plt.plot(epochs, history['test_accuracies'], 'r-', label='Test Accuracy', linewidth=2, marker='s')
-    # Fallback to test_metrics for backward compatibility
-    elif test_metrics is not None and 'accuracy' in test_metrics:
-        plt.axhline(y=test_metrics['accuracy'], color='r', linestyle='--', 
-                   label=f'Test Accuracy: {test_metrics["accuracy"]:.4f}', linewidth=2)
     
     plt.xlabel('Epoch', fontsize=12)
     plt.ylabel('Accuracy', fontsize=12)
@@ -65,17 +69,156 @@ def plot_accuracy_curves(history, test_metrics=None, figsize=(10, 6)):
     plt.legend(fontsize=10)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.show()
+    if save_path:
+        os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else '.', exist_ok=True)
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Plot saved to {save_path}")
+    
+    if show:
+        plt.show()
+    else:
+        plt.close()
 
 
-def plot_combined_metrics(history, test_metrics=None, figsize=(12, 8)):
+def plot_f1_curves(history, figsize=(10, 6), save_path=None, show=True):
+    """
+    Plot training and testing F1 score curves vs epochs.
+    
+    Args:
+        history: Dictionary containing training history with 'train_f1_macro' key.
+                 If 'test_f1_macro' is present, will plot test F1 as a curve.
+        figsize: Figure size tuple (width, height)
+        save_path: If provided, save plot to this path
+        show: Whether to display the plot
+    """
+    if 'train_f1_macro' not in history:
+        print("Warning: 'train_f1_macro' not found in history. Skipping F1 plot.")
+        return
+    
+    plt.figure(figsize=figsize)
+    
+    epochs = range(1, len(history['train_f1_macro']) + 1)
+    
+    plt.plot(epochs, history['train_f1_macro'], 'b-', label='Training F1', 
+             linewidth=2, marker='o')
+    
+    # Plot test F1 from history if available
+    if 'test_f1_macro' in history:
+        plt.plot(epochs, history['test_f1_macro'], 'r-', label='Test F1', linewidth=2, marker='s')
+    
+    plt.xlabel('Epoch', fontsize=12)
+    plt.ylabel('F1 Score', fontsize=12)
+    plt.title('Training and Test F1 Score vs Epoch', fontsize=14, fontweight='bold')
+    plt.legend(fontsize=10)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    
+    if save_path:
+        os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else '.', exist_ok=True)
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Plot saved to {save_path}")
+    
+    if show:
+        plt.show()
+    else:
+        plt.close()
+
+
+def plot_precision_curves(history, figsize=(10, 6), save_path=None, show=True):
+    """
+    Plot training and testing precision curves vs epochs.
+    
+    Args:
+        history: Dictionary containing training history with 'train_precision_macro' key.
+                 If 'test_precision_macro' is present, will plot test precision as a curve.
+        figsize: Figure size tuple (width, height)
+        save_path: If provided, save plot to this path
+        show: Whether to display the plot
+    """
+    if 'train_precision_macro' not in history:
+        print("Warning: 'train_precision_macro' not found in history. Skipping precision plot.")
+        return
+    
+    plt.figure(figsize=figsize)
+    
+    epochs = range(1, len(history['train_precision_macro']) + 1)
+    
+    plt.plot(epochs, history['train_precision_macro'], 'b-', label='Training Precision', 
+             linewidth=2, marker='o')
+    
+    # Plot test precision from history if available
+    if 'test_precision_macro' in history:
+        plt.plot(epochs, history['test_precision_macro'], 'r-', label='Test Precision', linewidth=2, marker='s')
+    
+    plt.xlabel('Epoch', fontsize=12)
+    plt.ylabel('Precision', fontsize=12)
+    plt.title('Training and Test Precision vs Epoch', fontsize=14, fontweight='bold')
+    plt.legend(fontsize=10)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    
+    if save_path:
+        os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else '.', exist_ok=True)
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Plot saved to {save_path}")
+    
+    if show:
+        plt.show()
+    else:
+        plt.close()
+
+
+def plot_recall_curves(history, figsize=(10, 6), save_path=None, show=True):
+    """
+    Plot training and testing recall curves vs epochs.
+    
+    Args:
+        history: Dictionary containing training history with 'train_recall_macro' key.
+                 If 'test_recall_macro' is present, will plot test recall as a curve.
+        figsize: Figure size tuple (width, height)
+        save_path: If provided, save plot to this path
+        show: Whether to display the plot
+    """
+    if 'train_recall_macro' not in history:
+        print("Warning: 'train_recall_macro' not found in history. Skipping recall plot.")
+        return
+    
+    plt.figure(figsize=figsize)
+    
+    epochs = range(1, len(history['train_recall_macro']) + 1)
+    
+    plt.plot(epochs, history['train_recall_macro'], 'b-', label='Training Recall', 
+             linewidth=2, marker='o')
+    
+    # Plot test recall from history if available
+    if 'test_recall_macro' in history:
+        plt.plot(epochs, history['test_recall_macro'], 'r-', label='Test Recall', linewidth=2, marker='s')
+    
+    plt.xlabel('Epoch', fontsize=12)
+    plt.ylabel('Recall', fontsize=12)
+    plt.title('Training and Test Recall vs Epoch', fontsize=14, fontweight='bold')
+    plt.legend(fontsize=10)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    
+    if save_path:
+        os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else '.', exist_ok=True)
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Plot saved to {save_path}")
+    
+    if show:
+        plt.show()
+    else:
+        plt.close()
+
+
+def plot_combined_metrics(history, figsize=(12, 8), save_path=None, show=True):
     """
     Plot multiple metrics (loss, accuracy, F1) in subplots.
     
     Args:
         history: Dictionary containing training history. If test metrics are present
                  (e.g., 'test_losses', 'test_accuracies'), they will be plotted as curves.
-        test_metrics: Optional dictionary containing test metrics (deprecated, use history)
         figsize: Figure size tuple (width, height)
     """
     fig, axes = plt.subplots(2, 2, figsize=figsize)
@@ -87,9 +230,7 @@ def plot_combined_metrics(history, test_metrics=None, figsize=(12, 8)):
     if 'test_losses' in history:
         axes[0, 0].plot(epochs, history['test_losses'], 'r-', label='Test Loss', 
                        linewidth=2, marker='s')
-    elif test_metrics is not None and 'loss' in test_metrics:
-        axes[0, 0].axhline(y=test_metrics['loss'], color='r', linestyle='--', 
-                          label=f'Test Loss: {test_metrics["loss"]:.4f}', linewidth=2)
+
     axes[0, 0].set_xlabel('Epoch')
     axes[0, 0].set_ylabel('Loss')
     axes[0, 0].set_title('Loss vs Epoch')
@@ -103,9 +244,7 @@ def plot_combined_metrics(history, test_metrics=None, figsize=(12, 8)):
     if 'test_accuracies' in history:
         axes[0, 1].plot(epochs, history['test_accuracies'], 'r-', label='Test Accuracy', 
                        linewidth=2, marker='s')
-    elif test_metrics is not None and 'accuracy' in test_metrics:
-        axes[0, 1].axhline(y=test_metrics['accuracy'], color='r', linestyle='--', 
-                          label=f'Test Accuracy: {test_metrics["accuracy"]:.4f}', linewidth=2)
+
     axes[0, 1].set_xlabel('Epoch')
     axes[0, 1].set_ylabel('Accuracy')
     axes[0, 1].set_title('Accuracy vs Epoch')
@@ -119,9 +258,7 @@ def plot_combined_metrics(history, test_metrics=None, figsize=(12, 8)):
         if 'test_f1_macro' in history:
             axes[1, 0].plot(epochs, history['test_f1_macro'], 'r-', label='Test F1', 
                            linewidth=2, marker='s')
-        elif test_metrics is not None and 'f1_macro' in test_metrics:
-            axes[1, 0].axhline(y=test_metrics['f1_macro'], color='r', linestyle='--', 
-                              label=f'Test F1: {test_metrics["f1_macro"]:.4f}', linewidth=2)
+
         axes[1, 0].set_xlabel('Epoch')
         axes[1, 0].set_ylabel('F1 Score')
         axes[1, 0].set_title('F1 Score vs Epoch')
@@ -135,10 +272,6 @@ def plot_combined_metrics(history, test_metrics=None, figsize=(12, 8)):
         if 'test_precision_macro' in history:
             axes[1, 1].plot(epochs, history['test_precision_macro'], 'r-', 
                            label='Test Precision', linewidth=2, marker='s')
-        elif test_metrics is not None and 'precision_macro' in test_metrics:
-            axes[1, 1].axhline(y=test_metrics['precision_macro'], color='r', linestyle='--', 
-                              label=f'Test Precision: {test_metrics["precision_macro"]:.4f}', 
-                              linewidth=2)
         axes[1, 1].set_xlabel('Epoch')
         axes[1, 1].set_ylabel('Precision')
         axes[1, 1].set_title('Precision vs Epoch')
@@ -146,11 +279,19 @@ def plot_combined_metrics(history, test_metrics=None, figsize=(12, 8)):
         axes[1, 1].grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.show()
+    if save_path:
+        os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else '.', exist_ok=True)
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Plot saved to {save_path}")
+    
+    if show:
+        plt.show()
+    else:
+        plt.close()
 
 
 def plot_confusion_matrix(y_true, y_pred, class_names=None, figsize=(8, 6), 
-                         normalize=False, cmap='Blues'):
+                         normalize=False, cmap='Blues', save_path=None, show=True):
     """
     Plot confusion matrix as a heatmap.
     
@@ -161,6 +302,8 @@ def plot_confusion_matrix(y_true, y_pred, class_names=None, figsize=(8, 6),
         figsize: Figure size tuple (width, height)
         normalize: If True, normalize the confusion matrix
         cmap: Colormap for the heatmap
+        save_path: If provided, save plot to this path
+        show: Whether to display the plot
     """
     cm = confusion_matrix(y_true, y_pred)
     
@@ -185,19 +328,27 @@ def plot_confusion_matrix(y_true, y_pred, class_names=None, figsize=(8, 6),
     plt.xlabel('Predicted Label', fontsize=12)
     plt.title(title, fontsize=14, fontweight='bold')
     plt.tight_layout()
-    plt.show()
+    
+    if save_path:
+        os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else '.', exist_ok=True)
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Plot saved to {save_path}")
+    
+    if show:
+        plt.show()
+    else:
+        plt.close()
     
     return cm
 
 
-def plot_training_history(history, test_metrics=None, figsize=(15, 10)):
+def plot_training_history(history, figsize=(15, 10), save_path=None, show=True):
     """
     Create a comprehensive plot of all training metrics.
     
     Args:
         history: Dictionary containing training history. If test metrics are present
                  (e.g., 'test_losses', 'test_accuracies'), they will be plotted as curves.
-        test_metrics: Optional dictionary containing test metrics (deprecated, use history)
         figsize: Figure size tuple (width, height)
     """
     num_metrics = sum([
@@ -227,9 +378,6 @@ def plot_training_history(history, test_metrics=None, figsize=(15, 10)):
         if 'test_losses' in history:
             axes[plot_idx].plot(epochs, history['test_losses'], 'r-', 
                                label='Test Loss', linewidth=2, marker='s')
-        elif test_metrics and 'loss' in test_metrics:
-            axes[plot_idx].axhline(y=test_metrics['loss'], color='r', linestyle='--', 
-                                  label=f'Test Loss', linewidth=2)
         axes[plot_idx].set_xlabel('Epoch')
         axes[plot_idx].set_ylabel('Loss')
         axes[plot_idx].set_title('Loss vs Epoch')
@@ -245,9 +393,6 @@ def plot_training_history(history, test_metrics=None, figsize=(15, 10)):
         if 'test_accuracies' in history:
             axes[plot_idx].plot(epochs, history['test_accuracies'], 'r-', 
                                label='Test Accuracy', linewidth=2, marker='s')
-        elif test_metrics and 'accuracy' in test_metrics:
-            axes[plot_idx].axhline(y=test_metrics['accuracy'], color='r', linestyle='--', 
-                                  label=f'Test Accuracy', linewidth=2)
         axes[plot_idx].set_xlabel('Epoch')
         axes[plot_idx].set_ylabel('Accuracy')
         axes[plot_idx].set_title('Accuracy vs Epoch')
@@ -262,9 +407,6 @@ def plot_training_history(history, test_metrics=None, figsize=(15, 10)):
         if 'test_f1_macro' in history:
             axes[plot_idx].plot(epochs, history['test_f1_macro'], 'r-', 
                                label='Test F1', linewidth=2, marker='s')
-        elif test_metrics and 'f1_macro' in test_metrics:
-            axes[plot_idx].axhline(y=test_metrics['f1_macro'], color='r', linestyle='--', 
-                                 label=f'Test F1', linewidth=2)
         axes[plot_idx].set_xlabel('Epoch')
         axes[plot_idx].set_ylabel('F1 Score')
         axes[plot_idx].set_title('F1 Score vs Epoch')
@@ -279,9 +421,6 @@ def plot_training_history(history, test_metrics=None, figsize=(15, 10)):
         if 'test_precision_macro' in history:
             axes[plot_idx].plot(epochs, history['test_precision_macro'], 'r-', 
                                label='Test Precision', linewidth=2, marker='s')
-        elif test_metrics and 'precision_macro' in test_metrics:
-            axes[plot_idx].axhline(y=test_metrics['precision_macro'], color='r', linestyle='--', 
-                                  label=f'Test Precision', linewidth=2)
         axes[plot_idx].set_xlabel('Epoch')
         axes[plot_idx].set_ylabel('Precision')
         axes[plot_idx].set_title('Precision vs Epoch')
@@ -296,9 +435,6 @@ def plot_training_history(history, test_metrics=None, figsize=(15, 10)):
         if 'test_recall_macro' in history:
             axes[plot_idx].plot(epochs, history['test_recall_macro'], 'r-', 
                                label='Test Recall', linewidth=2, marker='s')
-        elif test_metrics and 'recall_macro' in test_metrics:
-            axes[plot_idx].axhline(y=test_metrics['recall_macro'], color='r', linestyle='--', 
-                                  label=f'Test Recall', linewidth=2)
         axes[plot_idx].set_xlabel('Epoch')
         axes[plot_idx].set_ylabel('Recall')
         axes[plot_idx].set_title('Recall vs Epoch')
@@ -311,5 +447,14 @@ def plot_training_history(history, test_metrics=None, figsize=(15, 10)):
         axes[idx].axis('off')
     
     plt.tight_layout()
-    plt.show()
+    
+    if save_path:
+        os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else '.', exist_ok=True)
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Plot saved to {save_path}")
+    
+    if show:
+        plt.show()
+    else:
+        plt.close()
 
