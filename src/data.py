@@ -51,6 +51,8 @@ class WasteClassificationDataset(Dataset):
                     img_path = os.path.join(class_dir, img_name)
                     self.samples.append((img_path, class_idx))
 
+        print(f"[Dataset] Loaded {len(self.samples)} examples from {len(self.classes)} classes: {self.classes}")
+
     def __len__(self):
         '''
             return number of samples in the dataset
