@@ -178,8 +178,9 @@ def train_model(model, train_loader, criterion, optimizer, device, num_epochs, t
         optimizer: Optimizer
         device: Device to run on
         num_epochs: Number of epochs to train
-        test_loader: Optional DataLoader for test data (if provided, will evaluate each epoch)
+        test_loader: Optional DataLoader for test data
         verbose: Whether to print progress
+        scheduler: Optional learning rate scheduler
     
     Returns:
         dict: Training history with metrics per epoch
@@ -193,6 +194,7 @@ def train_model(model, train_loader, criterion, optimizer, device, num_epochs, t
         'train_precision_weighted': [],
         'train_recall_weighted': [],
         'train_f1_weighted': [],
+        'learning_rates': [],  # Track learning rate
     }
     
     if test_loader is not None:
@@ -216,7 +218,8 @@ def train_model(model, train_loader, criterion, optimizer, device, num_epochs, t
         history['train_precision_weighted'].append(train_metrics['precision_weighted'])
         history['train_recall_weighted'].append(train_metrics['recall_weighted'])
         history['train_f1_weighted'].append(train_metrics['f1_weighted'])
-
+        
+        # Track current learning rate
         current_lr = optimizer.param_groups[0]['lr']
         history['learning_rates'].append(current_lr)
         
@@ -231,16 +234,17 @@ def train_model(model, train_loader, criterion, optimizer, device, num_epochs, t
             history['test_precision_weighted'].append(test_metrics['precision_weighted'])
             history['test_recall_weighted'].append(test_metrics['recall_weighted'])
             history['test_f1_weighted'].append(test_metrics['f1_weighted'])
-
+            
+            # Step scheduler based on test loss
             if scheduler is not None:
                 scheduler.step(test_metrics['loss'])
         
         # Print progress
         if verbose:
-            print(f'Epoch [{epoch+1}/{num_epochs}]')
-            print(f'  Train - Loss: {train_metrics["loss"]:.4f}, Acc: {train_metrics["accuracy"]:.4f}, F1: {train_metrics["f1_macro"]:.4f}, Precision: {train_metrics["precision_macro"]:.4f}, Recall: {train_metrics["recall_macro"]:.4f}')
+            print(f'Epoch [{epoch+1}/{num_epochs}] - LR: {current_lr:.6f}')
+            print(f'  Train - Loss: {train_metrics["loss"]:.4f}, Acc: {train_metrics["accuracy"]:.4f}, F1: {train_metrics["f1_macro"]:.4f}')
             if test_loader is not None:
-                print(f'  Test  - Loss: {test_metrics["loss"]:.4f}, Acc: {test_metrics["accuracy"]:.4f}, F1: {test_metrics["f1_macro"]:.4f}, Precision: {test_metrics["precision_macro"]:.4f}, Recall: {test_metrics["recall_macro"]:.4f}')
+                print(f'  Test  - Loss: {test_metrics["loss"]:.4f}, Acc: {test_metrics["accuracy"]:.4f}, F1: {test_metrics["f1_macro"]:.4f}')
             print('-' * 50)
     
     return history

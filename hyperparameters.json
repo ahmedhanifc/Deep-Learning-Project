@@ -1,33 +1,21 @@
 [
+
     {
-        "name": "Low_LR_High_Epochs_L2",
-        "learning_rate": 0.0001, 
+        "learning_rate": 0.001, 
         "batch_size": 32, 
-        "epochs": 100, 
-        "hidden_sizes": [512, 256, 128], 
-        "dropout_rates": [0.3, 0.3, 0.3],
-        "weight_decay": 0.0001,
-        "notes": "Best Performing model (Run 2) with added L2 regularization"
-    },
-    {
-        "name": "Low_LR_High_Epochs_HighDropout",
-        "learning_rate": 0.0001, 
-        "batch_size": 32, 
-        "epochs": 100, 
+        "epochs": 60, 
         "hidden_sizes": [512, 256, 128], 
         "dropout_rates": [0.5, 0.5, 0.4],
         "weight_decay": 0.0001,
-        "notes": "Same as above but with aggressive dropout to starve overfitting"
+        "notes": "Learning Rate Added adaptive"
     },
     {
-        "name": "Architecture_Bottleneck",
-        "learning_rate": 0.0001, 
+        "learning_rate": 0.003, 
         "batch_size": 32, 
-        "epochs": 100, 
-        "hidden_sizes": [128, 64, 32],
-        "dropout_rates": [0.3, 0.3, 0.3],
+        "epochs": 60, 
+        "hidden_sizes": [256, 128, 64], 
+        "dropout_rates": [0.5, 0.5, 0.4],
         "weight_decay": 0.0001,
-        "input_size": 150528,
-        "notes": "Massive input (224x224) squeezed into small first layer (128) to force compression"
+        "notes": "Learning Rate Added adaptive lower hidden sizes"
     }
 ]
