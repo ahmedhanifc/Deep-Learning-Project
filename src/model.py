@@ -167,7 +167,7 @@ def evaluate_model(model, data_loader, criterion, device):
     }
 
 
-def train_model(model, train_loader, criterion, optimizer, device, num_epochs, test_loader=None, verbose=True):
+def train_model(model, train_loader, criterion, optimizer, device, num_epochs, test_loader=None, verbose=True, scheduler=None):
     """
     Train model with separate train and validation phases.
     
@@ -216,6 +216,9 @@ def train_model(model, train_loader, criterion, optimizer, device, num_epochs, t
         history['train_precision_weighted'].append(train_metrics['precision_weighted'])
         history['train_recall_weighted'].append(train_metrics['recall_weighted'])
         history['train_f1_weighted'].append(train_metrics['f1_weighted'])
+
+        current_lr = optimizer.param_groups[0]['lr']
+        history['learning_rates'].append(current_lr)
         
         # Test
         if test_loader is not None:
@@ -228,6 +231,9 @@ def train_model(model, train_loader, criterion, optimizer, device, num_epochs, t
             history['test_precision_weighted'].append(test_metrics['precision_weighted'])
             history['test_recall_weighted'].append(test_metrics['recall_weighted'])
             history['test_f1_weighted'].append(test_metrics['f1_weighted'])
+
+            if scheduler is not None:
+                scheduler.step(test_metrics['loss'])
         
         # Print progress
         if verbose:

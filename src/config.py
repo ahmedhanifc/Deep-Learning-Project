@@ -13,6 +13,12 @@ MODEL_CONFIG = {
     "epochs": 10,
     "device": "cuda" if torch.cuda.is_available() else "cpu",
     'weight_decay': 0.01,  # L2 regularization
+
+    #----------------------------
+    "patience": 5,  # epochs to wait after no improvement
+    "delta": 0.01,  # minimum change in the monitored metric
+    "best_val_loss": float("inf"),  # best validation loss to compare against
+    "no_improvement_count": 0  # count of epochs with no improvement
 }
 
 MODEL_ARCHITECTURE_CONFIG = {

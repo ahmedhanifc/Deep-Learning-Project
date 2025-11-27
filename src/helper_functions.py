@@ -276,3 +276,10 @@ def get_optimizer(model_parameters, config):
         return optim.RMSprop(model_parameters, lr=lr, weight_decay=wd)
     else:
         raise ValueError(f"Unsupported optimizer type: {opt_type}")
+    
+
+'''
+patience – how long to wait after the last best improvement before stopping.
+delta – the minimum change in validation loss that we care about.
+thresholds – if you want to add a cap or lower bound.
+'''
