@@ -11,13 +11,16 @@ MODEL_CONFIG = {
     "batch_size": 32,
     "learning_rate": 0.001,
     "epochs": 10,
-    "device": "cuda" if torch.cuda.is_available() else "cpu"
+    "device": "cuda" if torch.cuda.is_available() else "cpu",
+    'weight_decay': 0.01,  # L2 regularization
 }
 
 MODEL_ARCHITECTURE_CONFIG = {
     "input_size": 224 * 224 * 3,  # Flattened image size (height * width * channels)
-    "hidden_sizes": [512, 256, 128],  # List of hidden layer sizes
+    "hidden_sizes": [512, 256, 128], 
     "num_classes": 4,  # Number of output classes
-    "dropout_rates": [0.3, 0.2, 0.1],  # List of dropout rates for each hidden layer
+    "dropout_rates": [0.3, 0.2, 0.1],  
 }
+
+
 

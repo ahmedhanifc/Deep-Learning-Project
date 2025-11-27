@@ -7,6 +7,7 @@ import os
 import torch
 from src.config import MODEL_ARCHITECTURE_CONFIG
 import json
+import torch.optim as optim
 
 def save_model(model, run_id, metrics, save_dir="models", save_best_only=True, best_metric_value=None):
     """
@@ -258,3 +259,20 @@ def save_config_to_json(config_dict, run_dir, filename="config.json"):
     with open(config_path, 'w') as f:
         json.dump(serializable_config, f, indent=2)
     print(f"Saved config to {config_path}")
+
+def get_optimizer(model_parameters, config):
+    opt_type = config["optimizer"]["type"]
+    lr = config["optimizer"]["learning_rate"]
+    wd = config["optimizer"]["weight_decay"] 
+    
+    print(f"[Setup] Using {opt_type} optimizer with LR={lr} and L2={wd}")
+
+    if opt_type == "Adam":
+        return optim.Adam(model_parameters, lr=lr, weight_decay=wd)
+    elif opt_type == "SGD":
+        momentum = config["optimizer"].get("momentum", 0.9)
+        return optim.SGD(model_parameters, lr=lr, momentum=momentum, weight_decay=wd)
+    elif opt_type == "RMSprop":
+        return optim.RMSprop(model_parameters, lr=lr, weight_decay=wd)
+    else:
+        raise ValueError(f"Unsupported optimizer type: {opt_type}")
