@@ -140,11 +140,11 @@ def evaluate_model(model, data_loader, criterion, device):
             all_preds.extend(predicted.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
     
-    # Convert to numpy arrays
+    # conversion to numpy arrays
     y_true = np.array(all_labels)
     y_pred = np.array(all_preds)
     
-    # Compute metrics
+    # metrics
     accuracy = accuracy_score(y_true, y_pred)
     precision_macro = precision_score(y_true, y_pred, average='macro', zero_division=0)
     recall_macro = recall_score(y_true, y_pred, average='macro', zero_division=0)
