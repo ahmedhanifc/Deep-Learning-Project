@@ -8,6 +8,7 @@ import torch
 from src.config import MODEL_ARCHITECTURE_CONFIG
 import json
 import torch.optim as optim
+from copy import deepcopy
 
 def save_model(model, run_id, metrics, save_dir="models", save_best_only=True, best_metric_value=None):
     """
@@ -193,6 +194,9 @@ def save_run_to_csv(run_data, csv_path="model_runs.csv"):
         'test_f1_macro': run_data.get('test_metrics', {}).get('f1_macro', ''),
         'test_precision_macro': run_data.get('test_metrics', {}).get('precision_macro', ''),
         'test_recall_macro': run_data.get('test_metrics', {}).get('recall_macro', ''),
+        
+        # Notes
+        'notes': run_data.get('notes', ''),
     }
     
     file_exists = os.path.exists(csv_path)
@@ -278,8 +282,49 @@ def get_optimizer(model_parameters, config):
         raise ValueError(f"Unsupported optimizer type: {opt_type}")
     
 
-'''
-patience – how long to wait after the last best improvement before stopping.
-delta – the minimum change in validation loss that we care about.
-thresholds – if you want to add a cap or lower bound.
-'''
+
+class EarlyStopping:
+    def __init__(self, patience=7, min_delta=0, mode='min', restore_best_weights=True):
+        """
+        Args:
+            patience (int): How many epochs to wait after last improvement
+            min_delta (float): Minimum change to qualify as improvement
+            mode (str): 'min' for loss, 'max' for accuracy
+            restore_best_weights (bool): Whether to restore best weights when stopping
+        """
+        self.patience = patience
+        self.min_delta = min_delta
+        self.mode = mode
+        self.restore_best_weights = restore_best_weights
+        self.best_score = float('inf') if mode == 'min' else float('-inf')
+        self.counter = 0
+        self.early_stop = False
+        self.best_weights = None
+
+    def __call__(self, val_score, model):
+        if self.mode == 'min':
+            if val_score < self.best_score - self.min_delta:
+                self.best_score = val_score
+                self.counter = 0
+                if self.restore_best_weights:
+                    self.best_weights = deepcopy(model.state_dict())
+            else:
+                self.counter += 1
+                if self.counter >= self.patience:
+                    self.early_stop = True
+        elif self.mode == 'max':
+            if val_score > self.best_score + self.min_delta:
+                self.best_score = val_score
+                self.counter = 0
+                if self.restore_best_weights:
+                    self.best_weights = deepcopy(model.state_dict())
+            else:
+                self.counter += 1
+                if self.counter >= self.patience:
+                    self.early_stop = True
+
+        return self.early_stop
+
+    def load_best_weights(self, model):
+        if self.best_weights is not None:
+            model.load_state_dict(self.best_weights)

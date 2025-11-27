@@ -1,21 +1,17 @@
 [
 
     {
-        "learning_rate": 0.001, 
+        "learning_rate": 0.0005,  
         "batch_size": 32, 
         "epochs": 60, 
+    
         "hidden_sizes": [512, 256, 128], 
-        "dropout_rates": [0.5, 0.5, 0.4],
-        "weight_decay": 0.0001,
-        "notes": "Learning Rate Added adaptive"
-    },
-    {
-        "learning_rate": 0.003, 
-        "batch_size": 32, 
-        "epochs": 60, 
-        "hidden_sizes": [256, 128, 64], 
-        "dropout_rates": [0.5, 0.5, 0.4],
-        "weight_decay": 0.0001,
-        "notes": "Learning Rate Added adaptive lower hidden sizes"
+        "dropout_rates": [0.4, 0.4, 0.3],
+
+        "weight_decay": 0.01,
+        
+        "notes": "Lower Dropout and Higher Hidden Size",
+        "input_size": 12288,
+        "image_size": [64, 64]
     }
 ]

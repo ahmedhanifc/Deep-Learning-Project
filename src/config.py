@@ -1,7 +1,7 @@
 import torch
 
 TRANSFORM_CONFIG = {
-    "image_size": (224, 224),  # (height, width)
+    "image_size": (64,64),  # (height, width)
     "normalize_mean": [0.485, 0.456, 0.406],  # ImageNet mean
     "normalize_std": [0.229, 0.224, 0.225],   # ImageNet std
     "random_horizontal_flip_prob": 0.5,
@@ -22,7 +22,7 @@ MODEL_CONFIG = {
 }
 
 MODEL_ARCHITECTURE_CONFIG = {
-    "input_size": 224 * 224 * 3,  # Flattened image size (height * width * channels)
+    "input_size": TRANSFORM_CONFIG["image_size"][0] * TRANSFORM_CONFIG["image_size"][1] * 3,  # Flattened image size (height * width * channels)
     "hidden_sizes": [512, 256, 128], 
     "num_classes": 4,  # Number of output classes
     "dropout_rates": [0.3, 0.2, 0.1],  

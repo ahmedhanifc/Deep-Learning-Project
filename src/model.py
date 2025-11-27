@@ -167,7 +167,7 @@ def evaluate_model(model, data_loader, criterion, device):
     }
 
 
-def train_model(model, train_loader, criterion, optimizer, device, num_epochs, test_loader=None, verbose=True, scheduler=None):
+def train_model(model, train_loader, criterion, optimizer, device, num_epochs, test_loader=None, verbose=True, scheduler=None, early_stopping=None):
     """
     Train model with separate train and validation phases.
     
@@ -181,6 +181,7 @@ def train_model(model, train_loader, criterion, optimizer, device, num_epochs, t
         test_loader: Optional DataLoader for test data
         verbose: Whether to print progress
         scheduler: Optional learning rate scheduler
+        early_stopping: Optional EarlyStopping instance
     
     Returns:
         dict: Training history with metrics per epoch
@@ -235,16 +236,25 @@ def train_model(model, train_loader, criterion, optimizer, device, num_epochs, t
             history['test_recall_weighted'].append(test_metrics['recall_weighted'])
             history['test_f1_weighted'].append(test_metrics['f1_weighted'])
             
-            # Step scheduler based on test loss
             if scheduler is not None:
                 scheduler.step(test_metrics['loss'])
+            
+            if early_stopping is not None:
+                if early_stopping(test_metrics['loss'], model):
+                    print(f"\nEarly stopping triggered at epoch {epoch+1}")
+                    print(f"Best validation loss: {early_stopping.best_score:.4f}")
+                    if early_stopping.restore_best_weights:
+                        early_stopping.load_best_weights(model)
+                        print("Restored best model weights")
+                    break
         
-        # Print progress
         if verbose:
             print(f'Epoch [{epoch+1}/{num_epochs}] - LR: {current_lr:.6f}')
             print(f'  Train - Loss: {train_metrics["loss"]:.4f}, Acc: {train_metrics["accuracy"]:.4f}, F1: {train_metrics["f1_macro"]:.4f}')
             if test_loader is not None:
                 print(f'  Test  - Loss: {test_metrics["loss"]:.4f}, Acc: {test_metrics["accuracy"]:.4f}, F1: {test_metrics["f1_macro"]:.4f}')
+                if early_stopping is not None:
+                    print(f'  Early Stop Counter: {early_stopping.counter}/{early_stopping.patience}')
             print('-' * 50)
     
     return history
