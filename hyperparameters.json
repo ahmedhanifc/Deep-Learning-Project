@@ -11,7 +11,13 @@
         "weight_decay": 0.01,
         
         "notes": "Lower Dropout and Higher Hidden Size",
-        "input_size": 12288,
-        "image_size": [64, 64]
+        "image_size": [64, 64],
+
+        "early_stopping": {
+            "patience": 10,
+            "min_delta": 0.0009,
+            "mode": "min",
+            "restore_best_weights": true
+        }
     }
 ]
