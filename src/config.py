@@ -1,11 +1,20 @@
 import torch
 
 TRANSFORM_CONFIG = {
-    "image_size": (64,64),  # (height, width) - overridden by hyperparameters.json
+    "image_size": (64,64),  # (height, width) 
     "normalize_mean": [0.485, 0.456, 0.406],  # ImageNet mean
     "normalize_std": [0.229, 0.224, 0.225],   # ImageNet std
     "random_horizontal_flip_prob": 0.5,
     "random_rotation_degrees": 15,
+    # ColorJitter parameters
+    "color_jitter_brightness": 0.2,
+    "color_jitter_contrast": 0.2,
+    "color_jitter_saturation": 0.2,
+
+    # RandomResizedCrop parameters
+    "random_resized_crop_size": (64, 64),  # Output size (height, width)
+    "random_resized_crop_scale": (0.8, 1.0),  # Scale range (min, max)
+    "random_resized_crop_ratio": (0.75, 1.33),  # Aspect ratio range (min, max)
 }
 
 MODEL_CONFIG = {

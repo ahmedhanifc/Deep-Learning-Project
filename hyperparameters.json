@@ -1,21 +1,21 @@
 [
 
     {
-        "learning_rate": 0.0005,  
+        "learning_rate":  0.001,  
         "batch_size": 32, 
-        "epochs": 60, 
+        "epochs": 100, 
     
-        "hidden_sizes": [512, 256, 128], 
-        "dropout_rates": [0.4, 0.4, 0.3],
+        "hidden_sizes": [128, 64, 32] , 
+        "dropout_rates": [0.3, 0.3, 0.2],
 
-        "weight_decay": 0.01,
+        "weight_decay": 0.1,
         
-        "notes": "Lower Dropout and Higher Hidden Size",
+        "notes": "Narrow MLP with High Regularization",
         "image_size": [64, 64],
 
         "early_stopping": {
-            "patience": 10,
-            "min_delta": 0.0009,
+            "patience": 20,
+            "min_delta": 0.001,
             "mode": "min",
             "restore_best_weights": true
         }
